@@ -5,5 +5,5 @@
 {% block heading %}Maōri - English Dictionary{% endblock %}
 
 {% block main %}
-Hi Daniel
+<h3>{% if logged_in %}Hi {{ session.get("firstname") }}!{% else %}Hi! Don't forget to create an account!{% endif %}</h3>
 {% endblock %}
