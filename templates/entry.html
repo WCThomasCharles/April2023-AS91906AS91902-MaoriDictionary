@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block title %}Maōri Dictionary | Home{% endblock %}
+
+{% block heading %}Maōri - English Dictionary{% endblock %}
+
+{% block main %}
+<h1>{{ passed_data[0] }} - {{ passed_data[1] }}</h1>
+    <h2>Level {{ passed_data[4] }}, {{ passed_data[2] }} category</h2>
+    <p><strong>Definition:</strong><br>{{ passed_data[3] }}</p>
+{% endblock %}
