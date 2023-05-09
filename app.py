@@ -40,7 +40,7 @@ def render_login():  # takes the user to the login page
         email = request.form['email'].strip().lower()
         password = request.form['password'].strip()
 
-        query = """SELECT PK, Firstname, Hashpass FROM users WHERE email = ?"""
+        query = """SELECT PK, Firstname, Hashpass, Admin FROM users WHERE email = ?"""
         con = create_connection(DATABASE)
         cur = con.cursor()
         cur.execute(query, (email, ))
@@ -51,6 +51,7 @@ def render_login():  # takes the user to the login page
             user_id = user_data[0]
             first_name = user_data[1]
             hashpass = user_data[2]
+            admin = user_data[3]
         except IndexError:
             print("dataError")
             return redirect("/login?error=Invalid+username+or+password")
@@ -61,6 +62,7 @@ def render_login():  # takes the user to the login page
         session['email'] = email
         session['userid'] = user_id
         session['firstname'] = first_name
+        session['admin'] = admin
         print(session)
         return redirect('/')
     return render_template('login.html', logged_in=is_logged_in())
@@ -109,6 +111,71 @@ def render_signup():  # takes the user to the signup page and gathers their sign
     return render_template("signup.html", logged_in=is_logged_in())
 
 
+@app.route('/admin')
+def render_admin():
+    if not is_logged_in():
+        return redirect('/')
+    query = "SELECT Category " \
+            "FROM Categories"
+    con = create_connection(DATABASE)
+    cur = con.cursor()
+    cur.execute(query)
+    categories = cur.fetchall()
+    query = "SELECT level " \
+            "FROM levels"
+    con = create_connection(DATABASE)
+    cur = con.cursor()
+    cur.execute(query)
+    levels = cur.fetchall()
+    con.close()
+    return render_template('admin.html', categories=categories, levels=levels, logged_in=is_logged_in())
+
+
+@app.route('/add/<table>/<column>', methods=['POST', 'GET'])
+def add(table, column):
+    if not is_logged_in():
+        return redirect('/?message=Need+to+be+logged+in.')
+    if request.method == "POST":
+        print(request.form)
+        name = request.form.get('name').title().strip()
+        print(name)
+        user = session.get("userid")
+        con = create_connection(DATABASE)
+        query = "INSERT INTO " + table + " (" + column + ", User) VALUES (?, ?)"
+        cur = con.cursor()
+        cur.execute(query, (name, user))
+        con.commit()
+        con.close()
+        return redirect('/admin')
+
+
+@app.route('/addword', methods=['POST', 'GET'])
+def add_word():
+    if not is_logged_in():
+        return redirect('/?message=Need+to+be+logged+in.')
+    if request.method == "POST":
+        maori = request.form.get('maori').title().strip()
+        english = request.form.get('english').title().strip()
+        definition = request.form.get('definition').title().strip()
+        category = request.form.get('category').title().strip()
+        level = request.form.get('level').title().strip()
+        user = session.get("userid")
+        con = create_connection(DATABASE)
+        query = "INSERT INTO words (Maori, English, Category, Definition, Level, Owner) VALUES (?, ?, ?, ?, ?, ?)"
+        cur = con.cursor()
+        cur.execute(query, (maori, english, category, definition, level, user))
+        con.commit()
+        con.close()
+        return redirect('/admin')
+
+
+@app.route('/editer/<word>')
+def render_editer(word):
+    if not is_logged_in():
+        return redirect('/')
+    return render_template('editer.html', logged_in=is_logged_in())
+
+
 @app.route('/categories')
 def render_categories():  # Takes the user to a list of links to categories
     query = "SELECT PK, Category " \
@@ -118,7 +185,8 @@ def render_categories():  # Takes the user to a list of links to categories
     cur.execute(query)
     data = cur.fetchall()
     con.close()
-    return render_template('href_list.html', passed_data=data, next_step="category", logged_in=is_logged_in())
+    title = "Categories"
+    return render_template('href_list.html', passed_data=data, next_step="category", logged_in=is_logged_in(), title=title)
 
 
 @app.route('/category/<category_id>')  # Takes the user to a list of links to words
@@ -130,8 +198,13 @@ def render_category(category_id):  # Takes the user to the home page
             "Where Category = " + category_id
     cur.execute(query)
     data = cur.fetchall()
+    query = "SELECT Category " \
+            "FROM Categories " \
+            "Where PK = " + category_id
+    cur.execute(query)
+    title = str(cur.fetchone()[0])
     con.close()
-    return render_template('href_list.html', passed_data=data, next_step="word", logged_in=is_logged_in())
+    return render_template('href_list.html', passed_data=data, next_step="word", logged_in=is_logged_in(), title=title)
 
 
 @app.route('/levels')
@@ -143,7 +216,8 @@ def render_levels():  # Takes the user to a list of links to levels
     cur.execute(query)
     data = cur.fetchall()
     con.close()
-    return render_template('href_list.html', next_step="level", passed_data=data, logged_in=is_logged_in())
+    title = "Levels"
+    return render_template('href_list.html', next_step="level", passed_data=data, logged_in=is_logged_in(), title=title)
 
 
 @app.route('/level/<level_id>')
@@ -155,31 +229,34 @@ def render_level(level_id):  # Takes the user to a list of links to words
             "Where level = " + level_id
     cur.execute(query)
     data = cur.fetchall()
+    query = "SELECT level " \
+            "FROM levels " \
+            "Where PK = " + level_id
+    cur.execute(query)
+    title = "level "+str(cur.fetchone()[0])
     con.close()
-    return render_template('href_list.html', passed_data=data, next_step="word", logged_in=is_logged_in())
+    return render_template('href_list.html', passed_data=data, next_step="word", logged_in=is_logged_in(), title=title)
 
 
 @app.route('/word/<word_id>')
 def render_entry(word_id):  # # Takes the user to a page for details on a word
     con = create_connection(DATABASE)
     cur = con.cursor()
-    query = "SELECT Maori, English, Category, Definition, Level " \
+    query = "SELECT Maori, English, Category, Definition, Level, Owner " \
             "FROM words " \
             "Where PK = " + word_id
     cur.execute(query)
-    data = list(cur.fetchall()[0])
+    data = list(cur.fetchone())
     query = "SELECT Category " \
             "FROM Categories " \
             "Where PK = " + str(data[2])
     cur.execute(query)
-    category = list(cur.fetchall()[0])
-    data[2] = category[0]
+    data[2] = cur.fetchone()[0]
     query = "SELECT level " \
             "FROM levels " \
             "Where PK = " + str(data[4])
     cur.execute(query)
-    level = list(cur.fetchall()[0])
-    data[4] = level[0]
+    data[4] = cur.fetchone()[0]
     con.close()
     return render_template('entry.html', passed_data=data, logged_in=is_logged_in())
 

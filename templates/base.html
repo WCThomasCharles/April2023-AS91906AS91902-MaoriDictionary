@@ -30,6 +30,9 @@
                 <li><a href="\signup">Signup</a></li>
                 {% else %}
                 <li><a href="\logout">Logout</a></li>
+                {% if session.get("admin") %}
+                <li><a href="\admin">Admin</a></li>
+                {% endif %}
                 {% endif %}
 			</ul>
 		</nav>

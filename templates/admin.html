@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}Maōri Dictionary | Home{% endblock %}
+
+{% block heading %}Maōri - English Dictionary{% endblock %}
+
+{% block main %}
+<h3>Category Admin</h3>
+<h4>Add a category</h4>
+<form class="myform" method="POST" action="/add/Categories/Category">
+    <div class="form-group">
+        <div class="form-label"><label for="name">Category Name:</label></div>
+        <div class="form-element"><input type="text" name="name" id="name" required></div>
+    </div>
+    <div class="form-group">
+        <div class="form-label"></div>
+        <div class="form-element"><input type="submit" value="Add Category"></div>
+    </div>
+</form>
+<h4>Add a level</h4>
+<form class="myform" method="POST" action="/add/levels/level">
+    <div class="form-group">
+        <div class="form-label"><label for="name">Level Name:</label></div>
+        <div class="form-element"><input type="text" name="name" id="name" required></div>
+    </div>
+    <div class="form-group">
+        <div class="form-label"></div>
+        <div class="form-element"><input type="submit" value="Add Level"></div>
+    </div>
+</form>
+<h4>
+<form class="myform" method="POST" action="/addword">
+    <div class="form-group">
+        <div class="form-label"><label for="maori">Maori:</label></div>
+        <div class="form-element"><input type="text" name="maori" id="maori" required></div>
+    </div>
+    <div class="form-group">
+        <div class="form-label"><label for="english">English:</label></div>
+        <div class="form-element"><input type="text" name="english" id="english" required></div>
+    </div>
+    <div class="form-group">
+        <div class="form-label"><label for="definition">Definition:</label></div>
+        <div class="form-element"><input type="text" name="definition" id="definition" required></div>
+    </div>
+    <div class="form-group">
+        <div class="form-label"><label for="category">Category:</label></div>
+        <select name="category">
+        {% for category in categories %}
+        <option value="{{category[0]}}">{{category[0]}}</option>
+        {% endfor %}
+        </select>
+    </div>
+    <div class="form-group">
+        <div class="form-label"><label for="level">Level:</label></div>
+        <select name="level">
+        {% for level in levels %}
+        <option value="{{level[0]}}">{{level[0]}}</option>
+        {% endfor %}
+        </select>
+    </div>
+    <div class="form-group">
+        <div class="form-label"></div>
+        <div class="form-element"><input type="submit" value="Add Word"></div>
+    </div>
+</form>
+</h4>
+{% endblock %}
