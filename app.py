@@ -115,20 +115,26 @@ def render_signup():  # takes the user to the signup page and gathers their sign
 def render_admin():
     if not is_logged_in():
         return redirect('/')
-    query = "SELECT Category " \
+    query = "SELECT PK, Category " \
             "FROM Categories"
     con = create_connection(DATABASE)
     cur = con.cursor()
     cur.execute(query)
     categories = cur.fetchall()
-    query = "SELECT level " \
+    query = "SELECT PK, level " \
             "FROM levels"
     con = create_connection(DATABASE)
     cur = con.cursor()
     cur.execute(query)
     levels = cur.fetchall()
+    query = "SELECT Maori, English, PK " \
+            "FROM words"
+    con = create_connection(DATABASE)
+    cur = con.cursor()
+    cur.execute(query)
+    words = cur.fetchall()
     con.close()
-    return render_template('admin.html', categories=categories, levels=levels, logged_in=is_logged_in())
+    return render_template('admin.html', categories=categories, levels=levels, words=words, logged_in=is_logged_in())
 
 
 @app.route('/add/<table>/<column>', methods=['POST', 'GET'])
@@ -149,6 +155,26 @@ def add(table, column):
         return redirect('/admin')
 
 
+@app.route('/remove/<table>/', methods=['POST', 'GET'])
+def remove(table):
+    if not is_logged_in():
+        return redirect('/?message=Need+to+be+logged+in.')
+    if request.method == "POST":
+        if request.form.get('confirm') == "CONFIRM":
+            print(request.form)
+            pk = request.form.get('pk')
+            print(pk)
+            con = create_connection(DATABASE)
+            query = "DELETE FROM " + table + " WHERE PK = ?"
+            cur = con.cursor()
+            cur.execute(query, (pk, ))
+            con.commit()
+            con.close()
+            return redirect('/admin')
+        else:
+            return redirect('/admin?message=Confirmation+failed.')
+
+
 @app.route('/addword', methods=['POST', 'GET'])
 def add_word():
     if not is_logged_in():
@@ -157,8 +183,8 @@ def add_word():
         maori = request.form.get('maori').title().strip()
         english = request.form.get('english').title().strip()
         definition = request.form.get('definition').title().strip()
-        category = request.form.get('category').title().strip()
-        level = request.form.get('level').title().strip()
+        category = request.form.get('category')
+        level = request.form.get('level')
         user = session.get("userid")
         con = create_connection(DATABASE)
         query = "INSERT INTO words (Maori, English, Category, Definition, Level, Owner) VALUES (?, ?, ?, ?, ?, ?)"
@@ -169,11 +195,62 @@ def add_word():
         return redirect('/admin')
 
 
+@app.route('/edit/<pk>', methods=['POST', 'GET'])
+def edit_word(pk):
+    if not is_logged_in():
+        return redirect('/?message=Need+to+be+logged+in.')
+    if request.method == "POST":
+        if request.form.get('confirm') == "CONFIRM":
+            maori = str(request.form.get('maori').title().strip())
+            english = str(request.form.get('english').title().strip())
+            definition = str(request.form.get('definition').title().strip())
+            category = str(request.form.get('category'))
+            level = str(request.form.get('level'))
+            user = str(session.get("userid"))
+            con = create_connection(DATABASE)
+            query = "UPDATE words SET Maori = "+maori+", English = "+english+", Category = "+category+", Definition = "+definition+", Level = "+level+", Owner = "+user+" " \
+                    "WHERE PK = "+str(pk)
+            cur = con.cursor()
+            cur.execute(query, )
+            con.commit()
+            con.close()
+            return redirect('/admin')
+        else:
+            return redirect('/admin?message=Confirmation+failed.')
+
+
 @app.route('/editer/<word>')
 def render_editer(word):
     if not is_logged_in():
         return redirect('/')
-    return render_template('editer.html', logged_in=is_logged_in())
+    query = "SELECT PK, Category " \
+            "FROM Categories"
+    con = create_connection(DATABASE)
+    cur = con.cursor()
+    cur.execute(query)
+    categories = cur.fetchall()
+    query = "SELECT PK, level " \
+            "FROM levels"
+    con = create_connection(DATABASE)
+    cur = con.cursor()
+    cur.execute(query)
+    levels = cur.fetchall()
+    query = "SELECT Maori, English, Category, Level, Definition, PK " \
+            "FROM words WHERE PK = "+word
+    con = create_connection(DATABASE)
+    cur = con.cursor()
+    cur.execute(query)
+    word_data = cur.fetchone()
+    con.close()
+    for level in levels:
+        if word_data[3] == level[0]:
+            word_level = level
+    for category in categories:
+        if str(word_data[2]) == str(category[0]):
+            word_category = category
+    levels.insert(0, levels.pop(levels.index(word_level)))
+    categories.insert(0, categories.pop(categories.index(word_category)))
+    return render_template('editer.html', categories=categories, levels=levels, word=word_data, logged_in=is_logged_in())
 
 
 @app.route('/categories')
@@ -242,7 +319,7 @@ def render_level(level_id):  # Takes the user to a list of links to words
 def render_entry(word_id):  # # Takes the user to a page for details on a word
     con = create_connection(DATABASE)
     cur = con.cursor()
-    query = "SELECT Maori, English, Category, Definition, Level, Owner " \
+    query = "SELECT Maori, English, Category, Definition, Level, Owner, PK " \
             "FROM words " \
             "Where PK = " + word_id
     cur.execute(query)
@@ -251,12 +328,18 @@ def render_entry(word_id):  # # Takes the user to a page for details on a word
             "FROM Categories " \
             "Where PK = " + str(data[2])
     cur.execute(query)
-    data[2] = cur.fetchone()[0]
+    try:
+        data[2] = cur.fetchone()[0]
+    except TypeError:
+        data[2] = "empty"
     query = "SELECT level " \
             "FROM levels " \
             "Where PK = " + str(data[4])
     cur.execute(query)
-    data[4] = cur.fetchone()[0]
+    try:
+        data[4] = cur.fetchone()[0]
+    except TypeError:
+        data[4] = "empty"
     con.close()
     return render_template('entry.html', passed_data=data, logged_in=is_logged_in())
 

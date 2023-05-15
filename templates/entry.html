@@ -8,5 +8,5 @@
 <h1>{{ passed_data[0] }} - {{ passed_data[1] }}</h1>
     <h2>Level {{ passed_data[4] }}, {{ passed_data[2] }} category</h2>
     <p><strong>Definition:</strong><br>{{ passed_data[3] }}</p>
-    {% if session.get("admin") && session.get("userid") %}<p><a href="/editer">[edit]</a></p>{% endif %}
+    {% if session.get("admin")%}<p><a href="/editer/{{ passed_data[6] }}">[edit]</a></p>{% endif %}
 {% endblock %}
