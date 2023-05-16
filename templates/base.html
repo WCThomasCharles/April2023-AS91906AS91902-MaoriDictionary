@@ -14,10 +14,13 @@
 
 		<header>
 			<h1>{% block heading %}{% endblock %}</h1>
+            <form method="POST" action="/search">
+                <input type="text" name="search" id="search">
+                <input type="submit" value="Search">
+            </form>
 		</header>
 
 		<nav>
-            <input type="checkbox" name="drop_down_menu" />
 			<span></span>
 			<span></span>
 			<span></span>

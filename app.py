@@ -87,6 +87,7 @@ def render_signup():  # takes the user to the signup page and gathers their sign
         email = request.form.get('email').lower().strip()
         password = request.form.get('password')
         password2 = request.form.get('password2')
+        admin = request.form.get('admin')
 
         if password != password2:
             return redirect("/signup?error=Passwords+do+not+match")
@@ -95,11 +96,11 @@ def render_signup():  # takes the user to the signup page and gathers their sign
 
         hashed_password = bcrypt.generate_password_hash(password)
         con = create_connection(DATABASE)
-        query = "INSERT INTO users (Firstname, Lastname, Email, Hashpass) VALUES (?, ?, ?, ?)"
+        query = "INSERT INTO users (Firstname, Lastname, Email, Hashpass, Admin) VALUES (?, ?, ?, ?, ?)"
         cur = con.cursor()
 
         try:
-            cur.execute(query, (first_name, last_name, email, hashed_password))
+            cur.execute(query, (first_name, last_name, email, hashed_password, admin))
         except sqlite3.IntegrityError:
             con.close()
             return redirect("/signup?error=Email+is+already+used")
@@ -206,9 +207,8 @@ def edit_word(pk):
             definition = str(request.form.get('definition').title().strip())
             category = str(request.form.get('category'))
             level = str(request.form.get('level'))
-            user = str(session.get("userid"))
             con = create_connection(DATABASE)
-            query = "UPDATE words SET Maori = "+maori+", English = "+english+", Category = "+category+", Definition = "+definition+", Level = "+level+", Owner = "+user+" " \
+            query = "UPDATE words SET Maori = '"+maori+"', English = '"+english+"', Category = '"+category+"', Definition = '"+definition+"', Level = '"+level+"' " \
                     "WHERE PK = "+str(pk)
             cur = con.cursor()
             cur.execute(query, )
@@ -319,7 +319,7 @@ def render_level(level_id):  # Takes the user to a list of links to words
 def render_entry(word_id):  # # Takes the user to a page for details on a word
     con = create_connection(DATABASE)
     cur = con.cursor()
-    query = "SELECT Maori, English, Category, Definition, Level, Owner, PK " \
+    query = "SELECT Maori, English, Category, Definition, Level, Owner, PK, Image " \
             "FROM words " \
             "Where PK = " + word_id
     cur.execute(query)
@@ -342,6 +342,21 @@ def render_entry(word_id):  # # Takes the user to a page for details on a word
         data[4] = "empty"
     con.close()
     return render_template('entry.html', passed_data=data, logged_in=is_logged_in())
+
+
+@app.route('/search', methods=['GET', 'Post'])
+def render_search():
+    search = request.form['search']
+    title = "Showing results for "+search
+    query = "SELECT PK, Maori, English " \
+            "FROM words WHERE Maori like ? OR English like ? OR Definition like ? "
+    search = "%" + search + "%"
+    con = create_connection(DATABASE)
+    cur = con.cursor()
+    cur.execute(query, (search, search, search))
+    data = cur.fetchall()
+    con.close()
+    return render_template('href_list.html', passed_data=data, next_step="word", logged_in=is_logged_in(), title=title)
 
 
 if __name__ == '__main__':
