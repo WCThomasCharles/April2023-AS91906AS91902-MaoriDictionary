@@ -208,10 +208,11 @@ def edit_word(pk):
             category = str(request.form.get('category'))
             level = str(request.form.get('level'))
             con = create_connection(DATABASE)
-            query = "UPDATE words SET Maori = '"+maori+"', English = '"+english+"', Category = '"+category+"', Definition = '"+definition+"', Level = '"+level+"' " \
-                    "WHERE PK = "+str(pk)
+            query = "UPDATE words SET Maori = ?, English = ?, " \
+                    "Category = ?, Definition = ?, Level = ? " \
+                    "WHERE PK = ?"
             cur = con.cursor()
-            cur.execute(query, )
+            cur.execute(query, (maori, english, category, definition, level, pk))
             con.commit()
             con.close()
             return redirect('/admin')
