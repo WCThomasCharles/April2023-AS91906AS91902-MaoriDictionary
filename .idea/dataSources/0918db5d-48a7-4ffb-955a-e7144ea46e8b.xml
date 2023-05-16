@@ -1565,11 +1565,7 @@
       <DasType>integer|0s</DasType>
       <Position>7</Position>
     </column>
-    <column id="541" parent="509" name="Image">
-      <DasType>varchar(30)|0s</DasType>
-      <Position>8</Position>
-    </column>
-    <key id="542" parent="509">
+    <key id="541" parent="509">
       <ColNames>PK</ColNames>
       <Primary>1</Primary>
     </key>
