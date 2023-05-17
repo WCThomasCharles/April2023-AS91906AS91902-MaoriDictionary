@@ -5,8 +5,10 @@
 {% block heading %}Maōri - English Dictionary{% endblock %}
 
 {% block main %}
-<h1>{{ passed_data[0] }} - {{ passed_data[1] }}</h1>
+<h1>{{ passed_data[0] }} - {{ passed_data[1] }}</h1> {% if session.get("admin")%}<a href="/editer/{{ passed_data[6] }}">[edit]</a>{% endif %}
     <h2>Level {{ passed_data[4] }}, {{ passed_data[2] }} category</h2>
     <p><strong>Definition:</strong><br>{{ passed_data[3] }}</p>
-    {% if session.get("admin")%}<p><a href="/editer/{{ passed_data[6] }}">[edit]</a></p>{% endif %}
+    <div>
+        <img src="/static/images/{{ passed_data[7] }}" onerror="this.oneerror=null;this.src='/static/images/noimage.png'">
+    </div>
 {% endblock %}

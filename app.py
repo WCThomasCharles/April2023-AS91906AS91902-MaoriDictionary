@@ -140,7 +140,7 @@ def render_signup():  # takes the user to the signup page and gathers their sign
 
 @app.route('/admin')
 def render_admin():  # takes the user to the admin page
-    if not is_logged_in():  # if the user is not logged in redirects them to the home page
+    if not is_logged_in() or not session.get('admin'):  # if the user is not logged in redirects them to the home page
         return redirect('/')
 
     # creates a connection to the database
@@ -191,7 +191,7 @@ def add(table, column):  # adds a level or category
         cur.execute(query, (name, user))
         con.commit()
         con.close()
-        return redirect('/admin')
+        return redirect('/admin') # redirects the user to the admin page
 
 
 @app.route('/remove/<table>/', methods=['POST', 'GET'])
@@ -251,8 +251,8 @@ def add_word():  # adds a word to the words table
 
 
 @app.route('/edit/<pk>', methods=['POST', 'GET'])
-def edit_word(pk):
-    if not is_logged_in():
+def edit_word(pk):  # changes an entry in the word table
+    if not is_logged_in():  # if the user isn't logged in and reroutes the home page
         return redirect('/?message=Need+to+be+logged+in.')
     if request.method == "POST":
         if request.form.get('confirm') == "CONFIRM":
@@ -276,7 +276,7 @@ def edit_word(pk):
 
 @app.route('/editer/<word>')
 def render_editer(word):
-    if not is_logged_in():
+    if not is_logged_in() or not session.get('admin'):
         return redirect('/')
     query = "SELECT PK, Category " \
             "FROM Categories"
@@ -377,7 +377,7 @@ def render_level(level_id):  # Takes the user to a list of links to words
 def render_entry(word_id):  # # Takes the user to a page for details on a word
     con = create_connection(DATABASE)
     cur = con.cursor()
-    query = "SELECT Maori, English, Category, Definition, Level, Owner, PK " \
+    query = "SELECT Maori, English, Category, Definition, Level, Owner, PK, Image " \
             "FROM words " \
             "Where PK = " + word_id
     cur.execute(query)
