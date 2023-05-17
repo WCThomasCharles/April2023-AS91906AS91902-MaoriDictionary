@@ -344,5 +344,20 @@ def render_entry(word_id):  # # Takes the user to a page for details on a word
     return render_template('entry.html', passed_data=data, logged_in=is_logged_in())
 
 
+@app.route('/search', methods=['GET', 'Post'])
+def render_search():
+    search = request.form['search']
+    title = "Showing results for "+search
+    query = "SELECT PK, Maori, English " \
+            "FROM words WHERE Maori like ? OR English like ? OR Definition like ? "
+    search = "%" + search + "%"
+    con = create_connection(DATABASE)
+    cur = con.cursor()
+    cur.execute(query, (search, search, search))
+    data = cur.fetchall()
+    con.close()
+    return render_template('href_list.html', passed_data=data, next_step="word", logged_in=is_logged_in(), title=title)
+
+
 if __name__ == '__main__':
     app.run()
