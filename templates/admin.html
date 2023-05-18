@@ -5,6 +5,13 @@
 {% block heading %}Maōri - English Dictionary{% endblock %}
 
 {% block main %}
+
+    <!--
+		===================================
+		==        Category Admin         ==
+		===================================
+    -->
+
 <h3>Category Admin</h3>
 <h4>Add or remove a category</h4>
 <form class="myform" method="POST" action="/add/Categories/Category">
@@ -33,6 +40,13 @@
         <div class="form-element"><input type="submit" value="Remove Category"></div>
     </div>
 </form>
+
+    <!--
+		=================================
+		==        Levels Admin         ==
+		=================================
+    -->
+
 <h4>Add or remove a level</h4>
 <form class="myform" method="POST" action="/add/levels/level">
     <div class="form-group">
@@ -60,6 +74,13 @@
         <div class="form-element"><input type="submit" value="Remove Level"></div>
     </div>
 </form>
+
+    <!--
+		===============================
+		==        Word Admin         ==
+		===============================
+    -->
+
 <h4>Add or remove a word</h4>
 <form class="myform" method="POST" action="/addword">
     <div class="form-group">

@@ -101,6 +101,8 @@
       <workItem from="1683959187126" duration="202000" />
       <workItem from="1684117378968" duration="1749000" />
       <workItem from="1684119151949" duration="1240000" />
+      <workItem from="1684375794441" duration="4641000" />
+      <workItem from="1684380711867" duration="1771000" />
     </task>
     <servers />
   </component>
@@ -108,6 +110,6 @@
     <option name="version" value="3" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/April2023_AS91906AS91902_MaoriDictionary$app.coverage" NAME="app Coverage Results" MODIFIED="1684293891768" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/April2023_AS91906AS91902_MaoriDictionary$app.coverage" NAME="app Coverage Results" MODIFIED="1684380409247" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

@@ -4,6 +4,7 @@ from flask import Flask, render_template, request, redirect, session
 import sqlite3
 from sqlite3 import Error
 from flask_bcrypt import Bcrypt
+from datetime import datetime
 
 # ---------- Variables ----------
 DATABASE = "C:/Users/garet/OneDrive/Desktop/Thom/Programming/" \
@@ -191,7 +192,7 @@ def add(table, column):  # adds a level or category
         cur.execute(query, (name, user))
         con.commit()
         con.close()
-        return redirect('/admin') # redirects the user to the admin page
+        return redirect('/admin')  # redirects the user to the admin page
 
 
 @app.route('/remove/<table>/', methods=['POST', 'GET'])
@@ -242,9 +243,13 @@ def add_word():  # adds a word to the words table
         # query inserts a maori word, an english word, a category, a definition, a level, and an owner /
         # into the words table
         con = create_connection(DATABASE)
-        query = "INSERT INTO words (Maori, English, Category, Definition, Level, Owner) VALUES (?, ?, ?, ?, ?, ?)"
+        query = "INSERT INTO words (Maori, English, Category, Definition, Level, Owner, DATE) " \
+                "VALUES (?, ?, ?, ?, ?, ?, ?)"
         cur = con.cursor()
-        cur.execute(query, (maori, english, category, definition, level, user))
+
+        # executes the query using form data
+        cur.execute(query, (maori, english, category, definition, level, user,
+                            datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
         con.commit()
         con.close()
         return redirect('/admin')
@@ -256,16 +261,24 @@ def edit_word(pk):  # changes an entry in the word table
         return redirect('/?message=Need+to+be+logged+in.')
     if request.method == "POST":
         if request.form.get('confirm') == "CONFIRM":
+
+            # assigns the data in the form to variables
             maori = str(request.form.get('maori').title().strip())
             english = str(request.form.get('english').title().strip())
             definition = str(request.form.get('definition').title().strip())
             category = str(request.form.get('category'))
             level = str(request.form.get('level'))
+
+            # establishes a query and connects to the database
+            # query updates a maori word, an english word, a category, a definition, a level /
+            # in the words table
             con = create_connection(DATABASE)
             query = "UPDATE words SET Maori = ?, English = ?, " \
                     "Category = ?, Definition = ?, Level = ? " \
                     "WHERE PK = ?"
             cur = con.cursor()
+
+            # executes the query using form data
             cur.execute(query, (maori, english, category, definition, level, pk))
             con.commit()
             con.close()
@@ -275,9 +288,17 @@ def edit_word(pk):  # changes an entry in the word table
 
 
 @app.route('/editer/<word>')
-def render_editer(word):
-    if not is_logged_in() or not session.get('admin'):
+def render_editer(word):  # renders the editer
+    if not is_logged_in() or not session.get('admin'):  # if the user isn't logged in and reroutes the home page
         return redirect('/')
+
+    # establishes queries and connects to the database
+    # query one gathers a primary key and category /
+    # from the categories table
+    # query two gathers a primary key and level /
+    # from the levels table
+    # query three gathers a maori word, an english word, a category, a definition, a level, and the primary key /
+    # from the words table
     query = "SELECT PK, Category " \
             "FROM Categories"
     con = create_connection(DATABASE)
@@ -313,6 +334,10 @@ def render_editer(word):
 
 @app.route('/categories')
 def render_categories():  # Takes the user to a list of links to categories
+
+    # establishes a query and connects to the database
+    # query gathers a primary key and category /
+    # from the categories table
     query = "SELECT PK, Category " \
             "FROM Categories"
     con = create_connection(DATABASE)
@@ -325,7 +350,11 @@ def render_categories():  # Takes the user to a list of links to categories
 
 
 @app.route('/category/<category_id>')  # Takes the user to a list of links to words
-def render_category(category_id):  # Takes the user to the home page
+def render_category(category_id):  # Takes the user to a list of links to words
+
+    # establishes a query and connects to the database
+    # query gathers primary key, maori, and english /
+    # from the words table by category
     con = create_connection(DATABASE)
     cur = con.cursor()
     query = "SELECT PK, Maori, English " \
@@ -333,6 +362,10 @@ def render_category(category_id):  # Takes the user to the home page
             "Where Category = " + category_id
     cur.execute(query)
     data = cur.fetchall()
+
+    # establishes a second query
+    # the query gathers the category associated with the category id /
+    # from the categories table
     query = "SELECT Category " \
             "FROM Categories " \
             "Where PK = " + category_id
@@ -344,6 +377,10 @@ def render_category(category_id):  # Takes the user to the home page
 
 @app.route('/levels')
 def render_levels():  # Takes the user to a list of links to levels
+
+    # establishes a query and connects to the database
+    # query gathers a primary key and level /
+    # from the levels table
     query = "SELECT PK, level " \
             "FROM levels"
     con = create_connection(DATABASE)
@@ -357,6 +394,10 @@ def render_levels():  # Takes the user to a list of links to levels
 
 @app.route('/level/<level_id>')
 def render_level(level_id):  # Takes the user to a list of links to words
+
+    # establishes a query and connects to the database
+    # query gathers primary key, maori, and english /
+    # from the words table by level
     con = create_connection(DATABASE)
     cur = con.cursor()
     query = "SELECT PK, Maori, English " \
@@ -364,6 +405,10 @@ def render_level(level_id):  # Takes the user to a list of links to words
             "Where level = " + level_id
     cur.execute(query)
     data = cur.fetchall()
+
+    # establishes a second query
+    # the query gathers the level associated with the level id /
+    # from the levels table
     query = "SELECT level " \
             "FROM levels " \
             "Where PK = " + level_id
@@ -374,13 +419,19 @@ def render_level(level_id):  # Takes the user to a list of links to words
 
 
 @app.route('/word/<word_id>')
-def render_entry(word_id):  # # Takes the user to a page for details on a word
+def render_entry(word_id):  # Takes the user to a page for details on a word
+
+    # establishes a query and connects to the database
+    # query gathers primary key, maori, english, definition, category, level, owner, and image /
+    # from the words table
     con = create_connection(DATABASE)
     cur = con.cursor()
     query = "SELECT Maori, English, Category, Definition, Level, Owner, PK, Image " \
             "FROM words " \
             "Where PK = " + word_id
     cur.execute(query)
+
+    # converts category id to it's associated category
     data = list(cur.fetchone())
     query = "SELECT Category " \
             "FROM Categories " \
@@ -390,6 +441,8 @@ def render_entry(word_id):  # # Takes the user to a page for details on a word
         data[2] = cur.fetchone()[0]
     except TypeError:
         data[2] = "empty"
+
+    # converts level id to it's associated level
     query = "SELECT level " \
             "FROM levels " \
             "Where PK = " + str(data[4])
